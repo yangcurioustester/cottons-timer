@@ -27,6 +27,9 @@
   --ear-in: #f3b6b0;
   --accent: #f2a32c;
   --accent-edge: #b86f0d;
+  --calm: #4fb3a0;
+  --calm-edge: #2f7f70;
+  --pill: rgba(255, 255, 255, .55);
   --orb: #ffd66b;
   --orb-glow: rgba(255, 214, 107, .45);
   --cloud: rgba(255, 255, 255, .85);
@@ -49,6 +52,9 @@
     --wool-edge: #9a9cba;
     --accent: #f6be4f;
     --accent-edge: #a9761a;
+    --calm: #7fd6c2;
+    --calm-edge: #3c8a79;
+    --pill: rgba(255, 255, 255, .1);
     --orb: #f3efd0;
     --orb-glow: rgba(243, 239, 208, .25);
     --cloud: rgba(170, 178, 225, .18);
@@ -70,6 +76,9 @@
   --wool-edge: #9a9cba;
   --accent: #f6be4f;
   --accent-edge: #a9761a;
+    --calm: #7fd6c2;
+    --calm-edge: #3c8a79;
+    --pill: rgba(255, 255, 255, .1);
   --orb: #f3efd0;
   --orb-glow: rgba(243, 239, 208, .25);
   --cloud: rgba(170, 178, 225, .18);
@@ -162,7 +171,7 @@ h1 {
 }
 .dial {
   display: block;
-  width: min(100%, 500px, max(280px, calc((100dvh - 340px) * .917)));
+  width: min(100%, 500px, max(280px, calc((100dvh - 460px) * .917)));
   height: auto;
   overflow: visible;
 }
@@ -262,6 +271,50 @@ h1 {
 .hint { margin: 4px 0 0; font-size: 14px; text-align: center; }
 @media (hover: none) { .hint { display: none; } }
 
+.tools { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.auto[aria-pressed="true"] { background: var(--ink); color: var(--sky-top); border-color: var(--ink); }
+.modes {
+  align-self: center; position: relative; z-index: 2;
+  display: inline-flex; gap: 4px; margin-top: 14px; padding: 4px;
+  border-radius: 999px; background: var(--pill);
+}
+.mode {
+  min-height: 40px; padding: 0 18px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--ink);
+  font: 700 15px var(--font-display); cursor: pointer;
+}
+.mode span { margin-left: 4px; font: 800 14px var(--font-body); opacity: .7; font-variant-numeric: tabular-nums; }
+.mode[aria-pressed="true"] { background: var(--wool); color: var(--wool-ink); box-shadow: 0 2px 0 var(--wool-edge); }
+.mode:disabled { cursor: default; }
+.mode:disabled:not([aria-pressed="true"]) { opacity: .55; }
+.mode:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+
+.setup { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.stepper { display: flex; align-items: center; gap: 8px; }
+.step {
+  width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%;
+  background: var(--wool); color: var(--wool-ink);
+  font: 700 22px/1 var(--font-display); cursor: pointer; box-shadow: 0 3px 0 var(--wool-edge);
+}
+.step:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--wool-edge); }
+.len { min-width: 104px; text-align: center; font-weight: 800; font-size: 14px; }
+.len b { font: 700 24px var(--font-display); font-variant-numeric: tabular-nums; margin-right: 2px; }
+.presets { display: flex; gap: 6px; }
+.chip {
+  min-height: 34px; padding: 0 12px; border: 2px solid currentColor; border-radius: 999px;
+  background: transparent; color: var(--on-hill);
+  font: 800 13px var(--font-body); font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.chip[aria-pressed="true"] { background: var(--on-hill); color: var(--hill); }
+.step:disabled, .chip:disabled { opacity: .45; cursor: default; }
+.step:focus-visible, .chip:focus-visible { outline: 3px solid var(--on-hill); outline-offset: 2px; }
+
+.relax .progress { stroke: var(--calm); }
+.relax .btn.main { background: var(--calm); box-shadow: 0 5px 0 var(--calm-edge); }
+.relax .btn.main:active:not(:disabled) { box-shadow: 0 1px 0 var(--calm-edge); }
+.relax:not(.done) .eyes-open { display: none; }
+.relax:not(.done) .eyes-shut, .relax:not(.done) .zzz-g { display: inline; }
+
 .sr {
   position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip-path: inset(50%); white-space: nowrap;
@@ -288,13 +341,21 @@ h1 {
   <header class="top">
     <div>
       <h1>Twenty-Five Sheep</h1>
-      <p>Focus for 25 minutes. One sheep joins the fence each minute.</p>
+      <p id="sub">Focus for 25 minutes. One sheep joins the fence each minute.</p>
     </div>
-    <button class="bell" id="bell" type="button" aria-pressed="true">
+    <div class="tools">
+      <button class="bell auto" id="auto" type="button" aria-pressed="false"><span id="autoText">Auto-next off</span></button>
+      <button class="bell" id="bell" type="button" aria-pressed="true">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a1 1 0 0 1 1 1v.6A4.5 4.5 0 0 1 12.5 7v3l1.3 1.6a.5.5 0 0 1-.4.9H2.6a.5.5 0 0 1-.4-.9L3.500 10V7A4.500 4.500 0 0 1 7 2.600V2a1 1 0 0 1 1-1Zm-1.700 12.500h3.400a1.700 1.700 0 0 1-3.400 0Z"/></svg>
       <span id="bellText">Bell on</span>
-    </button>
+      </button>
+    </div>
   </header>
+
+  <div class="modes" role="group" aria-label="Session type">
+    <button class="mode" id="modeFocus" type="button" aria-pressed="true">Focus <span id="fMin">25</span></button>
+    <button class="mode" id="modeRelax" type="button" aria-pressed="false">Relax <span id="rMin">5</span></button>
+  </div>
 
   <div class="dial-wrap">
     <svg class="dial" id="dial" viewBox="0 0 440 480" role="img" aria-label="25 minutes left">
@@ -361,6 +422,18 @@ h1 {
 
   <section class="pasture" aria-label="Controls and sheep count">
     <div class="pasture-in">
+      <div class="setup">
+        <div class="stepper" role="group" aria-label="Session length">
+          <button class="step" id="minus" type="button" aria-label="One minute shorter">&minus;</button>
+          <div class="len"><b id="lenVal">25</b><span id="lenLabel">min focus</span></div>
+          <button class="step" id="plus" type="button" aria-label="One minute longer">+</button>
+        </div>
+        <div class="presets" role="group" aria-label="Presets">
+          <button class="chip" type="button" data-f="25" data-r="5">25 / 5</button>
+          <button class="chip" type="button" data-f="50" data-r="10">50 / 10</button>
+          <button class="chip" type="button" data-f="15" data-r="3">15 / 3</button>
+        </div>
+      </div>
       <div class="count"><span>Sheep counted</span><b id="tally">0 of 25</b></div>
       <svg class="fence" id="fence" viewBox="0 0 500 44" aria-hidden="true"></svg>
       <div class="controls">
@@ -375,18 +448,30 @@ h1 {
 
 <script>
 (function () {
-  var TOTAL = 25 * 60 * 1000;
   var KEY = "twenty-five-sheep";
   var NS = "http://www.w3.org/2000/svg";
+  var LIMITS = { focus: [1, 90], relax: [1, 30] };
   var $ = function (id) { return document.getElementById(id); };
 
+  var mode = "focus";
+  var focusMin = 25;
+  var relaxMin = 5;
+  var autoNext = false;
   var status = "idle";
-  var remaining = TOTAL;
+  var remaining = 25 * 60000;
   var endAt = 0;
   var lastCount = 0;
   var bellOn = true;
   var audio = null;
   var wakeLock = null;
+  var nextTimer = 0;
+
+  function mins() { return mode === "focus" ? focusMin : relaxMin; }
+  function total() { return mins() * 60000; }
+  function clampInt(x, lo, hi, d) {
+    var v = Math.round(Number(x));
+    return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : d;
+  }
 
   function svg(tag, attrs, parent) {
     var node = document.createElementNS(NS, tag);
@@ -395,7 +480,7 @@ h1 {
     return node;
   }
 
-  // Fleece: 25 scallops, one per minute of the session.
+  // Fleece: 25 scallops, purely decorative.
   for (var i = 0; i < 25; i++) {
     var a = (i / 25) * Math.PI * 2;
     var x = 220 + Math.cos(a) * 182, y = 215 + Math.sin(a) * 182;
@@ -408,19 +493,25 @@ h1 {
     svg("path", { class: "curl", d: "M-9 3a9 9 0 0 1 18 0", transform: "translate(" + cx.toFixed(1) + " " + cy.toFixed(1) + ") rotate(" + deg.toFixed(1) + ")" }, $("fleece"));
   }
 
-  // Fence with 25 waiting sheep.
+  // Fence: one slot per minute of the current session.
   var fence = $("fence");
   svg("rect", { class: "rail", x: 0, y: 14, width: 500, height: 4, rx: 2 }, fence);
   svg("rect", { class: "rail", x: 0, y: 27, width: 500, height: 4, rx: 2 }, fence);
   for (var p = 0; p <= 5; p++) {
     svg("rect", { class: "rail", x: Math.min(p * 100, 494), y: 6, width: 6, height: 36, rx: 3 }, fence);
   }
+  var slotsG = svg("g", {}, fence);
   var slots = [];
-  for (var s = 0; s < 25; s++) {
-    var g = svg("g", { class: "slot", style: "--i:" + s }, fence);
-    var u = svg("use", { href: "#lamb", x: s * 20 + 0.5, y: 20, width: 19, height: 14 }, g);
-    u.style.transformBox = "fill-box";
-    slots.push(g);
+  function buildFence(n) {
+    while (slotsG.firstChild) slotsG.removeChild(slotsG.firstChild);
+    slots = [];
+    var sp = 500 / n, w = Math.min(24, sp - 1), h = w * 0.74;
+    for (var s = 0; s < n; s++) {
+      var g = svg("g", { class: "slot", style: "--i:" + (s * 25 / n).toFixed(2) }, slotsG);
+      var u = svg("use", { href: "#lamb", x: (s * sp + (sp - w) / 2).toFixed(2), y: (34 - h).toFixed(2), width: w.toFixed(2), height: h.toFixed(2) }, g);
+      u.style.transformBox = "fill-box";
+      slots.push(g);
+    }
   }
 
   function initAudio() {
@@ -463,7 +554,10 @@ h1 {
 
   function save() {
     try {
-      localStorage.setItem(KEY, JSON.stringify({ status: status, remaining: remaining, endAt: endAt, bellOn: bellOn }));
+      localStorage.setItem(KEY, JSON.stringify({
+        status: status, remaining: remaining, endAt: endAt, bellOn: bellOn,
+        mode: mode, focusMin: focusMin, relaxMin: relaxMin, autoNext: autoNext
+      }));
     } catch (e) {}
   }
 
@@ -473,68 +567,135 @@ h1 {
   }
 
   function render() {
+    var focus = mode === "focus";
+    var n = mins();
+    var tot = total();
     var secs = Math.ceil(remaining / 1000);
     var mm = String(Math.floor(secs / 60)).padStart(2, "0");
     var ss = String(secs % 60).padStart(2, "0");
     setText("d0", mm[0]); setText("d1", mm[1]); setText("d2", ss[0]); setText("d3", ss[1]);
 
-    var done = 1 - remaining / TOTAL;
+    var done = 1 - remaining / tot;
     var bar = $("progress");
     bar.setAttribute("stroke-dasharray", done.toFixed(5) + " 1");
     bar.setAttribute("opacity", done > 0 ? "1" : "0");
     $("walker").setAttribute("transform", "rotate(" + (done * 360).toFixed(2) + " 220 215)");
 
-    var count = Math.min(25, Math.floor((TOTAL - remaining) / 60000));
-    slots.forEach(function (slot, n) {
-      slot.classList.toggle("counted", n < count);
-      if (n !== count - 1) slot.classList.remove("hop");
+    var count = Math.min(n, Math.floor((tot - remaining) / 60000));
+    slots.forEach(function (slot, idx) {
+      slot.classList.toggle("counted", idx < count);
+      if (idx !== count - 1) slot.classList.remove("hop");
     });
     if (status === "running" && count === lastCount + 1 && count > 0) slots[count - 1].classList.add("hop");
-    if (count !== lastCount) $("dial").setAttribute("aria-label", (25 - count) + " minutes left");
     lastCount = count;
-    setText("tally", count + " of 25");
+    $("dial").setAttribute("aria-label", (n - count) + " minutes left");
+    setText("tally", count + " of " + n);
 
-    var minute = Math.min(25, count + 1);
+    var minute = Math.min(n, count + 1);
     setText("state", {
-      idle: "One sheep a minute",
-      running: "Minute " + minute + " of 25",
+      idle: focus ? "One sheep a minute" : "Time to rest",
+      running: (focus ? "Minute " : "Rest, minute ") + minute + " of " + n,
       paused: "Paused in minute " + minute,
-      done: "All 25 counted"
+      done: focus ? "All " + n + " counted" : "Break over"
     }[status]);
-    setText("main", { idle: "Start", running: "Pause", paused: "Resume", done: "Start again" }[status]);
+    setText("main", {
+      idle: "Start", running: "Pause", paused: "Resume",
+      done: focus ? "Start relax" : "Start focus"
+    }[status]);
     $("reset").disabled = status === "idle";
 
-    var title = status === "idle" ? "Twenty-Five Sheep" : status === "done" ? "All 25 counted" : mm + ":" + ss + " · Twenty-Five Sheep";
+    var locked = status === "running";
+    $("modeFocus").setAttribute("aria-pressed", String(focus));
+    $("modeRelax").setAttribute("aria-pressed", String(!focus));
+    $("modeFocus").disabled = locked;
+    $("modeRelax").disabled = locked;
+    setText("fMin", String(focusMin));
+    setText("rMin", String(relaxMin));
+    setText("lenVal", String(n));
+    setText("lenLabel", focus ? " min focus" : " min relax");
+    var lim = LIMITS[mode];
+    $("minus").disabled = locked || n <= lim[0];
+    $("plus").disabled = locked || n >= lim[1];
+    document.querySelectorAll(".chip").forEach(function (chip) {
+      chip.disabled = locked;
+      chip.setAttribute("aria-pressed", String(+chip.dataset.f === focusMin && +chip.dataset.r === relaxMin));
+    });
+    var plural = n === 1 ? "" : "s";
+    setText("sub", focus
+      ? "Focus for " + n + " minute" + plural + ". One sheep joins the fence each minute."
+      : "Rest for " + n + " minute" + plural + ". The sheep are dozing.");
+
+    var title = status === "idle" ? "Twenty-Five Sheep"
+      : status === "done" ? (focus ? "Focus complete" : "Break over")
+      : mm + ":" + ss + " · " + (focus ? "Focus" : "Rest");
     if (document.title !== title) document.title = title;
   }
 
   function setStatus(next, message) {
     status = next;
-    $("stage").className = "stage " + next;
+    $("stage").className = "stage " + next + (mode === "relax" ? " relax" : "");
     if (message) $("live").textContent = message;
     keepAwake(next === "running");
     render();
     save();
   }
 
+  // Any change of mode or length starts a fresh, idle session.
+  function applyLength() {
+    clearTimeout(nextTimer);
+    remaining = total();
+    lastCount = 0;
+    buildFence(mins());
+    setStatus("idle");
+  }
+  function setMode(m) {
+    if (status === "running" || m === mode) return;
+    mode = m;
+    applyLength();
+  }
+  function nudge(d) {
+    if (status === "running") return;
+    var lim = LIMITS[mode];
+    var v = Math.max(lim[0], Math.min(lim[1], mins() + d));
+    if (v === mins()) return;
+    if (mode === "focus") focusMin = v; else relaxMin = v;
+    applyLength();
+  }
+  function preset(f, r) {
+    if (status === "running") return;
+    focusMin = f;
+    relaxMin = r;
+    applyLength();
+  }
+
   function start() {
     initAudio();
-    if (status === "done") remaining = TOTAL;
+    clearTimeout(nextTimer);
+    if (status === "done") {
+      mode = mode === "focus" ? "relax" : "focus";
+      remaining = total();
+      lastCount = 0;
+      buildFence(mins());
+    }
     endAt = Date.now() + remaining;
-    setStatus("running", "Timer running");
+    setStatus("running", mode === "focus" ? "Focus started" : "Break started");
   }
   function pause() {
     remaining = Math.max(0, endAt - Date.now());
     setStatus("paused", "Timer paused");
   }
   function reset() {
-    remaining = TOTAL;
-    setStatus("idle", "Timer reset to 25 minutes");
+    clearTimeout(nextTimer);
+    remaining = total();
+    setStatus("idle", "Timer reset to " + mins() + " minutes");
   }
   function finish() {
     remaining = 0;
-    setStatus("done", "Focus session complete. All 25 sheep counted.");
+    setStatus("done", mode === "focus" ? "Focus session complete. Time to rest." : "Break over. Ready to focus.");
     ring();
+    if (autoNext) {
+      nextTimer = setTimeout(function () { if (status === "done") start(); }, 3000);
+    }
   }
   function toggle() {
     if (status === "running") pause(); else start();
@@ -546,19 +707,35 @@ h1 {
     if (remaining === 0) finish(); else render();
   }
 
+  function paintBell() {
+    $("bell").setAttribute("aria-pressed", String(bellOn));
+    $("bellText").textContent = bellOn ? "Bell on" : "Bell off";
+  }
+  function paintAuto() {
+    $("auto").setAttribute("aria-pressed", String(autoNext));
+    $("autoText").textContent = autoNext ? "Auto-next on" : "Auto-next off";
+  }
+
   $("main").addEventListener("click", toggle);
   $("reset").addEventListener("click", reset);
+  $("modeFocus").addEventListener("click", function () { setMode("focus"); });
+  $("modeRelax").addEventListener("click", function () { setMode("relax"); });
+  $("minus").addEventListener("click", function () { nudge(-1); });
+  $("plus").addEventListener("click", function () { nudge(1); });
+  document.querySelectorAll(".chip").forEach(function (chip) {
+    chip.addEventListener("click", function () { preset(+chip.dataset.f, +chip.dataset.r); });
+  });
   $("bell").addEventListener("click", function () {
     bellOn = !bellOn;
     paintBell();
     save();
     if (bellOn) { initAudio(); ring(); }
   });
-
-  function paintBell() {
-    $("bell").setAttribute("aria-pressed", String(bellOn));
-    $("bellText").textContent = bellOn ? "Bell on" : "Bell off";
-  }
+  $("auto").addEventListener("click", function () {
+    autoNext = !autoNext;
+    paintAuto();
+    save();
+  });
 
   document.addEventListener("keydown", function (e) {
     if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
@@ -582,18 +759,26 @@ h1 {
     var saved = JSON.parse(localStorage.getItem(KEY) || "null");
     if (saved) {
       bellOn = saved.bellOn !== false;
+      autoNext = saved.autoNext === true;
+      if (saved.mode === "relax") mode = "relax";
+      focusMin = clampInt(saved.focusMin, LIMITS.focus[0], LIMITS.focus[1], 25);
+      relaxMin = clampInt(saved.relaxMin, LIMITS.relax[0], LIMITS.relax[1], 5);
+      var tot = total();
       if (saved.status === "running") {
         endAt = saved.endAt;
-        remaining = Math.max(0, Math.min(TOTAL, endAt - Date.now()));
+        remaining = Math.max(0, Math.min(tot, endAt - Date.now()));
         status = remaining > 0 ? "running" : "done";
       } else if (saved.status === "paused" || saved.status === "done") {
-        remaining = Math.max(0, Math.min(TOTAL, saved.remaining));
+        remaining = Math.max(0, Math.min(tot, saved.remaining));
         status = saved.status;
       }
     }
   } catch (e) {}
-  lastCount = Math.min(25, Math.floor((TOTAL - remaining) / 60000));
+  if (status === "idle") remaining = total();
+  buildFence(mins());
+  lastCount = Math.min(mins(), Math.floor((total() - remaining) / 60000));
   paintBell();
+  paintAuto();
   setStatus(status);
 
   // Browsers slow page timers in background tabs, so a worker keeps the end on time.
