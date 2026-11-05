@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Twenty-Five Sheep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DynaPuff:wght@500;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* Layout: one round sheep stands on a hill. Its fleece is the clock face, and the fence below counts one sheep per minute. */
+:root {
+  --ink: #1f2a44;
+  --sky-top: #a9dbf0;
+  --sky-bot: #e6f5ee;
+  --hill-back: #a6d29a;
+  --hill: #72b36e;
+  --on-hill: #12261b;
+  --rail: #8a5a33;
+  --wool: #fffdf8;
+  --wool-track: #e2e5ea;
+  --wool-edge: #c4c8d2;
+  --wool-ink: #25263a;
+  --wool-soft: #55586f;
+  --face: #2b2a3a;
+  --ear-in: #f3b6b0;
+  --accent: #f2a32c;
+  --accent-edge: #b86f0d;
+  --orb: #ffd66b;
+  --orb-glow: rgba(255, 214, 107, .45);
+  --cloud: rgba(255, 255, 255, .85);
+  --ground-shadow: rgba(18, 38, 27, .28);
+  --stars: 0;
+  --font-display: "DynaPuff", ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+  --font-body: "Nunito", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #eef0ff;
+    --sky-top: #0f1533;
+    --sky-bot: #2b2f63;
+    --hill-back: #22455a;
+    --hill: #173542;
+    --on-hill: #dcebe6;
+    --rail: #4d6f7c;
+    --wool: #f1eff8;
+    --wool-track: #cfd0e2;
+    --wool-edge: #9a9cba;
+    --accent: #f6be4f;
+    --accent-edge: #a9761a;
+    --orb: #f3efd0;
+    --orb-glow: rgba(243, 239, 208, .25);
+    --cloud: rgba(170, 178, 225, .18);
+    --ground-shadow: rgba(0, 0, 0, .4);
+    --stars: 1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #eef0ff;
+  --sky-top: #0f1533;
+  --sky-bot: #2b2f63;
+  --hill-back: #22455a;
+  --hill: #173542;
+  --on-hill: #dcebe6;
+  --rail: #4d6f7c;
+  --wool: #f1eff8;
+  --wool-track: #cfd0e2;
+  --wool-edge: #9a9cba;
+  --accent: #f6be4f;
+  --accent-edge: #a9761a;
+  --orb: #f3efd0;
+  --orb-glow: rgba(243, 239, 208, .25);
+  --cloud: rgba(170, 178, 225, .18);
+  --ground-shadow: rgba(0, 0, 0, .4);
+  --stars: 1;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--hill);
+  color: var(--ink);
+  font: 600 16px/1.4 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.stage {
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(var(--sky-top), var(--sky-bot) 75%);
+}
+
+/* Sky */
+.sky { position: absolute; inset: 0; z-index: -2; pointer-events: none; }
+.stars {
+  position: absolute; inset: 0; opacity: var(--stars);
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent),
+    radial-gradient(1px 1px at 24% 42%, #fff, transparent),
+    radial-gradient(2px 2px at 36% 12%, #fff, transparent),
+    radial-gradient(1px 1px at 58% 8%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 70% 34%, #fff, transparent),
+    radial-gradient(1px 1px at 88% 48%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 8% 56%, #fff, transparent),
+    radial-gradient(1px 1px at 93% 14%, #fff, transparent);
+}
+.orb {
+  position: absolute; top: 15%; right: 11%;
+  width: clamp(52px, 9vw, 92px); aspect-ratio: 1; border-radius: 50%;
+  background: var(--orb);
+  box-shadow: 0 0 0 14px var(--orb-glow), 0 0 60px 26px var(--orb-glow);
+}
+.cloud { position: absolute; width: 170px; fill: var(--cloud); animation: drift 150s linear infinite; }
+.cloud.a { top: 19%; left: 6%; }
+.cloud.b { top: 38%; left: 66%; width: 120px; animation-duration: 210s; animation-delay: -60s; }
+@keyframes drift {
+  from { transform: translateX(-12vw); }
+  50%  { transform: translateX(12vw); }
+  to   { transform: translateX(-12vw); }
+}
+
+/* Header */
+.top {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  padding-top: 20px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+.top > div { min-width: 0; }
+h1 {
+  margin: 0;
+  font: 700 clamp(22px, 3.4vw, 30px)/1.1 var(--font-display);
+  text-wrap: balance;
+}
+.top p { margin: 4px 0 0; font-size: 15px; max-width: 34ch; }
+.bell {
+  flex: none;
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 40px; padding: 0 14px;
+  border: 2px solid currentColor; border-radius: 999px;
+  background: transparent; color: var(--ink);
+  font: 800 14px var(--font-body); cursor: pointer;
+}
+.bell svg { width: 16px; height: 16px; fill: currentColor; }
+.bell[aria-pressed="false"] svg { opacity: .45; }
+
+/* The sheep */
+.dial-wrap {
+  position: relative; z-index: 2;
+  flex: 1;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-top: 8px; padding-bottom: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.dial {
+  display: block;
+  width: min(100%, 500px, max(280px, calc((100dvh - 340px) * .917)));
+  height: auto;
+  overflow: visible;
+}
+.fleece { filter: drop-shadow(0 6px 10px rgba(31, 42, 68, .16)); transform-box: fill-box; transform-origin: center; }
+.running .fleece { animation: breathe 5.5s ease-in-out infinite; }
+@keyframes breathe { 50% { transform: scale(1.012); } }
+.wool { fill: var(--wool); }
+.curl { fill: none; stroke: var(--wool-track); stroke-width: 3; stroke-linecap: round; }
+.leg { fill: var(--face); }
+.ground { fill: var(--ground-shadow); }
+.track, .progress { fill: none; stroke-width: 16; }
+.track { stroke: var(--wool-track); }
+.progress { stroke: var(--accent); stroke-linecap: round; }
+.face { fill: var(--face); }
+.ear-in { fill: var(--ear-in); }
+.eye-w { fill: #fff; }
+.tuft { fill: var(--wool); stroke: var(--wool-track); stroke-width: 2.5; }
+.line { fill: none; stroke: #fff; stroke-width: 3.5; stroke-linecap: round; }
+.nose { fill: none; stroke: var(--ear-in); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.digit { font: 700 76px var(--font-display); fill: var(--wool-ink); text-anchor: middle; }
+.state { font: 800 18px var(--font-body); fill: var(--wool-soft); text-anchor: middle; }
+.zzz { font: 700 17px var(--font-display); fill: var(--wool-soft); }
+
+.eyes-open, .eyes-shut, .eyes-happy, .zzz-g { display: none; }
+.idle .eyes-open, .running .eyes-open { display: inline; }
+.paused .eyes-shut, .paused .zzz-g { display: inline; }
+.done .eyes-happy { display: inline; }
+.eyes-open { transform-box: fill-box; transform-origin: center; animation: blink 6s infinite; }
+@keyframes blink { 0%, 96%, 100% { transform: scaleY(1); } 98% { transform: scaleY(.1); } }
+.zzz { animation: float 3s ease-in-out infinite; }
+.zzz:nth-child(2) { animation-delay: .4s; }
+.zzz:nth-child(3) { animation-delay: .8s; }
+@keyframes float { 50% { transform: translateY(-4px); opacity: .55; } }
+
+/* Lamb that walks the ring, and the lambs on the fence */
+.lb { fill: var(--lb); }
+.ls { fill: var(--ls); stroke: var(--ls); stroke-width: 3; }
+.lf { fill: var(--lf); }
+.le { fill: var(--le); }
+.walker { --lb: var(--wool); --ls: var(--face); --lf: var(--face); --le: #fff; }
+.running .trot { animation: trot .7s ease-in-out infinite; }
+@keyframes trot { 50% { transform: translateY(-3px); } }
+
+/* Pasture */
+.pasture {
+  padding-top: 6px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  position: relative;
+  background: var(--hill);
+  color: var(--on-hill);
+}
+.pasture::before {
+  content: ""; position: absolute; left: -30%; right: -30%; top: -46px; height: 120px;
+  border-radius: 50%; background: var(--hill);
+}
+.pasture::after {
+  content: ""; position: absolute; z-index: -1; left: -12%; width: 78%; top: -104px; height: 240px;
+  border-radius: 50%; background: var(--hill-back);
+}
+.pasture-in {
+  position: relative; z-index: 1;
+  width: min(100%, 560px); margin: 0 auto;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.count {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font-weight: 800; font-size: 15px;
+}
+.count b { font: 700 18px var(--font-display); font-variant-numeric: tabular-nums; }
+.fence { display: block; width: 100%; height: auto; overflow: visible; }
+.rail { fill: var(--rail); }
+.slot { --lb: var(--on-hill); --ls: var(--on-hill); --lf: var(--on-hill); --le: transparent; opacity: .3; transition: opacity .3s; }
+.slot.counted { --lb: var(--wool); --ls: var(--face); --lf: var(--face); --le: #fff; opacity: 1; }
+.slot.hop use { animation: hop .7s ease-out; }
+.done .slot use { animation: hop .7s ease-out calc(var(--i) * 45ms) 2; }
+@keyframes hop { 40% { transform: translateY(-12px); } 70% { transform: translateY(0); } 85% { transform: translateY(-3px); } }
+
+.controls { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+.btn {
+  min-height: 56px; padding: 0 16px;
+  border: 0; border-radius: 18px;
+  color: var(--wool-ink);
+  font: 700 20px var(--font-display);
+  cursor: pointer;
+  transition: transform .08s, box-shadow .08s;
+}
+.btn.main { background: var(--accent); box-shadow: 0 5px 0 var(--accent-edge); }
+.btn.alt { background: var(--wool); box-shadow: 0 5px 0 var(--wool-edge); }
+.btn:active:not(:disabled) { transform: translateY(4px); }
+.btn.main:active { box-shadow: 0 1px 0 var(--accent-edge); }
+.btn.alt:active:not(:disabled) { box-shadow: 0 1px 0 var(--wool-edge); }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn:focus-visible, .bell:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.pasture .btn:focus-visible { outline-color: var(--on-hill); }
+.hint { margin: 4px 0 0; font-size: 14px; text-align: center; }
+@media (hover: none) { .hint { display: none; } }
+
+.sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .top { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .orb { top: 21%; right: 6%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<main class="stage idle" id="stage">
+  <div class="sky" aria-hidden="true">
+    <div class="stars"></div>
+    <div class="orb"></div>
+    <svg class="cloud a" viewBox="0 0 170 70"><circle cx="40" cy="44" r="24"/><circle cx="75" cy="32" r="30"/><circle cx="115" cy="40" r="26"/><circle cx="142" cy="50" r="17"/><rect x="28" y="46" width="125" height="22" rx="11"/></svg>
+    <svg class="cloud b" viewBox="0 0 170 70"><circle cx="40" cy="44" r="24"/><circle cx="75" cy="32" r="30"/><circle cx="115" cy="40" r="26"/><circle cx="142" cy="50" r="17"/><rect x="28" y="46" width="125" height="22" rx="11"/></svg>
+  </div>
+
+  <header class="top">
+    <div>
+      <h1>Twenty-Five Sheep</h1>
+      <p>Focus for 25 minutes. One sheep joins the fence each minute.</p>
+    </div>
+    <button class="bell" id="bell" type="button" aria-pressed="true">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a1 1 0 0 1 1 1v.6A4.5 4.5 0 0 1 12.5 7v3l1.3 1.6a.5.5 0 0 1-.4.9H2.6a.5.5 0 0 1-.4-.9L3.500 10V7A4.500 4.500 0 0 1 7 2.600V2a1 1 0 0 1 1-1Zm-1.700 12.500h3.400a1.700 1.700 0 0 1-3.400 0Z"/></svg>
+      <span id="bellText">Bell on</span>
+    </button>
+  </header>
+
+  <div class="dial-wrap">
+    <svg class="dial" id="dial" viewBox="0 0 440 480" role="img" aria-label="25 minutes left">
+      <defs>
+        <symbol id="lamb" viewBox="-2 0 48 34" overflow="visible">
+          <rect class="lf" x="12" y="21" width="4" height="11" rx="2"/>
+          <rect class="lf" x="27" y="21" width="4" height="11" rx="2"/>
+          <g class="ls"><circle cx="13" cy="14" r="7"/><circle cx="21" cy="10.500" r="8"/><circle cx="29" cy="14" r="7"/><circle cx="17" cy="19" r="6.500"/><circle cx="26" cy="19" r="6.500"/></g>
+          <g class="lb"><circle cx="13" cy="14" r="7"/><circle cx="21" cy="10.500" r="8"/><circle cx="29" cy="14" r="7"/><circle cx="17" cy="19" r="6.500"/><circle cx="26" cy="19" r="6.500"/></g>
+          <ellipse class="lf" cx="36" cy="13" rx="5.500" ry="6.500"/>
+          <ellipse class="lf" cx="32" cy="8.500" rx="3.500" ry="1.800" transform="rotate(24 32 8.500)"/>
+          <circle class="le" cx="38" cy="11.500" r="1.200"/>
+        </symbol>
+      </defs>
+
+      <ellipse class="ground" cx="220" cy="466" rx="150" ry="11"/>
+      <rect class="leg" x="128" y="380" width="30" height="78" rx="13"/>
+      <rect class="leg" x="282" y="380" width="30" height="78" rx="13"/>
+      <rect class="leg" x="176" y="390" width="28" height="76" rx="13"/>
+      <rect class="leg" x="236" y="390" width="28" height="76" rx="13"/>
+
+      <g class="fleece" id="fleece"><circle class="wool" cx="220" cy="215" r="186"/></g>
+
+      <circle class="track" cx="220" cy="215" r="150"/>
+      <circle class="progress" id="progress" cx="220" cy="215" r="150" pathLength="1" stroke-dasharray="0 1" transform="rotate(-90 220 215)" opacity="0"/>
+
+      <g transform="translate(0 14)">
+        <ellipse class="face" cx="170" cy="124" rx="26" ry="11" transform="rotate(-12 170 124)"/>
+        <ellipse class="ear-in" cx="168" cy="125" rx="16" ry="5.500" transform="rotate(-12 168 125)"/>
+        <ellipse class="face" cx="270" cy="124" rx="26" ry="11" transform="rotate(12 270 124)"/>
+        <ellipse class="ear-in" cx="272" cy="125" rx="16" ry="5.500" transform="rotate(12 272 125)"/>
+        <path class="face" d="M190 104Q220 90 250 104Q257 130 240 153Q220 168 200 153Q183 130 190 104Z"/>
+        <circle class="tuft" cx="201" cy="98" r="11"/>
+        <circle class="tuft" cx="239" cy="98" r="11"/>
+        <circle class="tuft" cx="220" cy="92" r="14"/>
+        <g class="eyes-open">
+          <circle class="eye-w" cx="205" cy="122" r="7"/><circle class="eye-w" cx="235" cy="122" r="7"/>
+          <circle class="face" cx="206" cy="123" r="3.600"/><circle class="face" cx="236" cy="123" r="3.600"/>
+        </g>
+        <g class="eyes-shut"><path class="line" d="M198 121q7 6 14 0"/><path class="line" d="M228 121q7 6 14 0"/></g>
+        <g class="eyes-happy"><path class="line" d="M198 124q7 -9 14 0"/><path class="line" d="M228 124q7 -9 14 0"/></g>
+        <path class="nose" d="M214 139h12l-6 5zM220 144v4"/>
+      </g>
+      <g class="zzz-g" aria-hidden="true">
+        <text class="zzz" x="262" y="120">z</text>
+        <text class="zzz" x="274" y="105" font-size="20">z</text>
+        <text class="zzz" x="287" y="92">z</text>
+      </g>
+
+      <g id="time" aria-hidden="true">
+        <text class="digit" id="d0" x="137" y="264">2</text>
+        <text class="digit" id="d1" x="184" y="264">5</text>
+        <text class="digit" x="220" y="260">:</text>
+        <text class="digit" id="d2" x="256" y="264">0</text>
+        <text class="digit" id="d3" x="303" y="264">0</text>
+      </g>
+      <text class="state" id="state" x="220" y="304" aria-hidden="true">One sheep a minute</text>
+
+      <g id="walker" class="walker">
+        <g class="trot"><use href="#lamb" x="193" y="30" width="54" height="38"/></g>
+      </g>
+    </svg>
+  </div>
+
+  <section class="pasture" aria-label="Controls and sheep count">
+    <div class="pasture-in">
+      <div class="count"><span>Sheep counted</span><b id="tally">0 of 25</b></div>
+      <svg class="fence" id="fence" viewBox="0 0 500 44" aria-hidden="true"></svg>
+      <div class="controls">
+        <button class="btn main" id="main" type="button">Start</button>
+        <button class="btn alt" id="reset" type="button" disabled>Reset</button>
+      </div>
+      <p class="hint">Press Space to start or pause, and R to reset.</p>
+    </div>
+  </section>
+  <p class="sr" role="status" aria-live="polite" id="live"></p>
+</main>
+
+<script>
+(function () {
+  var TOTAL = 25 * 60 * 1000;
+  var KEY = "twenty-five-sheep";
+  var NS = "http://www.w3.org/2000/svg";
+  var $ = function (id) { return document.getElementById(id); };
+
+  var status = "idle";
+  var remaining = TOTAL;
+  var endAt = 0;
+  var lastCount = 0;
+  var bellOn = true;
+  var audio = null;
+  var wakeLock = null;
+
+  function svg(tag, attrs, parent) {
+    var node = document.createElementNS(NS, tag);
+    for (var k in attrs) node.setAttribute(k, attrs[k]);
+    parent.appendChild(node);
+    return node;
+  }
+
+  // Fleece: 25 scallops, one per minute of the session.
+  for (var i = 0; i < 25; i++) {
+    var a = (i / 25) * Math.PI * 2;
+    var x = 220 + Math.cos(a) * 182, y = 215 + Math.sin(a) * 182;
+    svg("circle", { class: "wool", cx: x.toFixed(1), cy: y.toFixed(1), r: 28 }, $("fleece"));
+  }
+  for (var j = 0; j < 25; j++) {
+    var b = ((j + 0.5) / 25) * Math.PI * 2;
+    var cx = 220 + Math.cos(b) * 182, cy = 215 + Math.sin(b) * 182;
+    var deg = (b * 180) / Math.PI + 90;
+    svg("path", { class: "curl", d: "M-9 3a9 9 0 0 1 18 0", transform: "translate(" + cx.toFixed(1) + " " + cy.toFixed(1) + ") rotate(" + deg.toFixed(1) + ")" }, $("fleece"));
+  }
+
+  // Fence with 25 waiting sheep.
+  var fence = $("fence");
+  svg("rect", { class: "rail", x: 0, y: 14, width: 500, height: 4, rx: 2 }, fence);
+  svg("rect", { class: "rail", x: 0, y: 27, width: 500, height: 4, rx: 2 }, fence);
+  for (var p = 0; p <= 5; p++) {
+    svg("rect", { class: "rail", x: Math.min(p * 100, 494), y: 6, width: 6, height: 36, rx: 3 }, fence);
+  }
+  var slots = [];
+  for (var s = 0; s < 25; s++) {
+    var g = svg("g", { class: "slot", style: "--i:" + s }, fence);
+    var u = svg("use", { href: "#lamb", x: s * 20 + 0.5, y: 20, width: 19, height: 14 }, g);
+    u.style.transformBox = "fill-box";
+    slots.push(g);
+  }
+
+  function initAudio() {
+    try {
+      if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === "suspended") audio.resume();
+    } catch (e) { audio = null; }
+  }
+
+  // A soft sheep bell: a sine note plus a quiet inharmonic partial.
+  function ring() {
+    if (!bellOn || !audio) return;
+    var t0 = audio.currentTime + 0.02;
+    [880, 1174.66, 1318.51].forEach(function (freq, n) {
+      [[freq, 0.16], [freq * 2.76, 0.04]].forEach(function (part) {
+        var osc = audio.createOscillator();
+        var gain = audio.createGain();
+        var t = t0 + n * 0.34;
+        osc.frequency.value = part[0];
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(part[1], t + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+        osc.connect(gain).connect(audio.destination);
+        osc.start(t);
+        osc.stop(t + 1.6);
+      });
+    });
+  }
+
+  function keepAwake(on) {
+    if (on && !wakeLock && navigator.wakeLock) {
+      navigator.wakeLock.request("screen").then(function (lock) {
+        wakeLock = lock;
+        lock.addEventListener("release", function () { wakeLock = null; });
+      }).catch(function () {});
+    } else if (!on && wakeLock) {
+      wakeLock.release().catch(function () {});
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ status: status, remaining: remaining, endAt: endAt, bellOn: bellOn }));
+    } catch (e) {}
+  }
+
+  function setText(id, value) {
+    var node = $(id);
+    if (node.textContent !== value) node.textContent = value;
+  }
+
+  function render() {
+    var secs = Math.ceil(remaining / 1000);
+    var mm = String(Math.floor(secs / 60)).padStart(2, "0");
+    var ss = String(secs % 60).padStart(2, "0");
+    setText("d0", mm[0]); setText("d1", mm[1]); setText("d2", ss[0]); setText("d3", ss[1]);
+
+    var done = 1 - remaining / TOTAL;
+    var bar = $("progress");
+    bar.setAttribute("stroke-dasharray", done.toFixed(5) + " 1");
+    bar.setAttribute("opacity", done > 0 ? "1" : "0");
+    $("walker").setAttribute("transform", "rotate(" + (done * 360).toFixed(2) + " 220 215)");
+
+    var count = Math.min(25, Math.floor((TOTAL - remaining) / 60000));
+    slots.forEach(function (slot, n) {
+      slot.classList.toggle("counted", n < count);
+      if (n !== count - 1) slot.classList.remove("hop");
+    });
+    if (status === "running" && count === lastCount + 1 && count > 0) slots[count - 1].classList.add("hop");
+    if (count !== lastCount) $("dial").setAttribute("aria-label", (25 - count) + " minutes left");
+    lastCount = count;
+    setText("tally", count + " of 25");
+
+    var minute = Math.min(25, count + 1);
+    setText("state", {
+      idle: "One sheep a minute",
+      running: "Minute " + minute + " of 25",
+      paused: "Paused in minute " + minute,
+      done: "All 25 counted"
+    }[status]);
+    setText("main", { idle: "Start", running: "Pause", paused: "Resume", done: "Start again" }[status]);
+    $("reset").disabled = status === "idle";
+
+    var title = status === "idle" ? "Twenty-Five Sheep" : status === "done" ? "All 25 counted" : mm + ":" + ss + " · Twenty-Five Sheep";
+    if (document.title !== title) document.title = title;
+  }
+
+  function setStatus(next, message) {
+    status = next;
+    $("stage").className = "stage " + next;
+    if (message) $("live").textContent = message;
+    keepAwake(next === "running");
+    render();
+    save();
+  }
+
+  function start() {
+    initAudio();
+    if (status === "done") remaining = TOTAL;
+    endAt = Date.now() + remaining;
+    setStatus("running", "Timer running");
+  }
+  function pause() {
+    remaining = Math.max(0, endAt - Date.now());
+    setStatus("paused", "Timer paused");
+  }
+  function reset() {
+    remaining = TOTAL;
+    setStatus("idle", "Timer reset to 25 minutes");
+  }
+  function finish() {
+    remaining = 0;
+    setStatus("done", "Focus session complete. All 25 sheep counted.");
+    ring();
+  }
+  function toggle() {
+    if (status === "running") pause(); else start();
+  }
+
+  function tick() {
+    if (status !== "running") return;
+    remaining = Math.max(0, endAt - Date.now());
+    if (remaining === 0) finish(); else render();
+  }
+
+  $("main").addEventListener("click", toggle);
+  $("reset").addEventListener("click", reset);
+  $("bell").addEventListener("click", function () {
+    bellOn = !bellOn;
+    paintBell();
+    save();
+    if (bellOn) { initAudio(); ring(); }
+  });
+
+  function paintBell() {
+    $("bell").setAttribute("aria-pressed", String(bellOn));
+    $("bellText").textContent = bellOn ? "Bell on" : "Bell off";
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+    if (e.code === "Space") {
+      if (e.target.closest && e.target.closest("button")) return;
+      e.preventDefault();
+      toggle();
+    } else if (e.key === "r" || e.key === "R") {
+      if (status !== "idle") reset();
+    }
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) return;
+    tick();
+    if (status === "running") keepAwake(true);
+  });
+
+  // Restore a session that was open before a reload.
+  try {
+    var saved = JSON.parse(localStorage.getItem(KEY) || "null");
+    if (saved) {
+      bellOn = saved.bellOn !== false;
+      if (saved.status === "running") {
+        endAt = saved.endAt;
+        remaining = Math.max(0, Math.min(TOTAL, endAt - Date.now()));
+        status = remaining > 0 ? "running" : "done";
+      } else if (saved.status === "paused" || saved.status === "done") {
+        remaining = Math.max(0, Math.min(TOTAL, saved.remaining));
+        status = saved.status;
+      }
+    }
+  } catch (e) {}
+  lastCount = Math.min(25, Math.floor((TOTAL - remaining) / 60000));
+  paintBell();
+  setStatus(status);
+
+  // Browsers slow page timers in background tabs, so a worker keeps the end on time.
+  setInterval(tick, 250);
+  try {
+    var worker = new Worker(URL.createObjectURL(new Blob(["setInterval(function(){postMessage(0)},1000)"], { type: "text/javascript" })));
+    worker.onmessage = tick;
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
